@@ -1,0 +1,70 @@
+name: Android APK
+
+on:
+  push:
+    paths: ['index.html', 'manifest.json', 'icons/**', 'android/**', '.github/workflows/android.yml']
+  pull_request:
+    paths: ['index.html', 'manifest.json', 'icons/**', 'android/**', '.github/workflows/android.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # The release key lives only in the repo secrets (see README, "Signing key").
+      - name: Decode signing key
+        env:
+          MG_KEYSTORE_B64: ${{ secrets.MG_KEYSTORE_B64 }}
+        run: |
+          if [ -z "$MG_KEYSTORE_B64" ]; then
+            echo "::error::Secrets MG_KEYSTORE_B64 and MG_KEYSTORE_PASSWORD are missing. See README → Signing key."
+            exit 1
+          fi
+          echo "$MG_KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          echo "MG_KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+
+      # Fingerprint of the Android part (not the web page). The app only offers an APK update when
+      # the newest release's fingerprint differs from its own; web-only changes come in over the air.
+      - name: Fingerprint the Android part
+        run: echo "NATIVE_HASH=$(git ls-files -s android | sha1sum | cut -c1-12)" >> "$GITHUB_ENV"
+
+      # sideload = the APK on GitHub Releases (self-updating); play = the bundle for Google Play later.
+      - name: Build
+        working-directory: android
+        env:
+          MG_KEYSTORE_PASSWORD: ${{ secrets.MG_KEYSTORE_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleSideloadRelease bundlePlayRelease
+          cp app/build/outputs/apk/sideload/release/app-sideload-release.apk ../margingo.apk
+          cp app/build/outputs/bundle/playRelease/app-play-release.aab ../margingo-play.aab
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: margingo
+          path: |
+            margingo.apk
+            margingo-play.aab
+
+      # Each build on main becomes a GitHub Release, so the newest APK is always at
+      # https://github.com/<owner>/<repo>/releases/latest/download/margingo.apk
+      # The tag must match the app's versionCode (the run number, see android/app/build.gradle):
+      # the in-app update check compares the number after the last dot with the installed version.
+      - name: Publish release
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v1.0.${{ github.run_number }}" margingo.apk \
+            --title "MarginGo 1.0.${{ github.run_number }}" \
+            --notes "Android build of commit ${{ github.sha }}. Download margingo.apk below and open it on your phone to install or update. native: ${{ env.NATIVE_HASH }}"

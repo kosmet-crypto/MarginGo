@@ -1,0 +1,82 @@
+plugins {
+    id 'com.android.application'
+}
+
+// The web app lives at the repo root; copy it into the APK so it works offline.
+def webRoot = rootProject.file('..')
+tasks.register('copyWebApp', Copy) {
+    from(webRoot) {
+        include 'index.html', 'manifest.json', 'icons/**'
+    }
+    into 'src/main/assets/www'
+}
+preBuild.dependsOn copyWebApp
+
+// Release key from GitHub secrets (never committed). CI decodes it to this path; see
+// .github/workflows/android.yml. Without it the release build is left unsigned.
+def keystorePath = System.getenv('MG_KEYSTORE_PATH')
+
+android {
+    namespace 'app.margingo'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'app.margingo'
+        minSdk 26
+        targetSdk 34  // 35 forces edge-to-edge; the page does not pad for system bars in a WebView
+        // CI passes the run number so each new APK installs over the previous one.
+        def runNumber = System.getenv('GITHUB_RUN_NUMBER')
+        def build = runNumber ? (runNumber as int) : 1
+        versionCode build
+        versionName "1.0.${build}"
+        // Fingerprint of android/ from CI; a newer release with the same one only has web changes.
+        buildConfigField 'String', 'NATIVE_HASH', "\"${System.getenv('NATIVE_HASH') ?: ''}\""
+        // Where the app looks for newer pages and APKs (this repo).
+        buildConfigField 'String', 'UPDATE_REPO', "\"${System.getenv('GITHUB_REPOSITORY') ?: 'kosmet-crypto/MarginGo'}\""
+    }
+
+    // sideload: the APK from GitHub Releases; updates itself (page over the air, APK in-app).
+    // play: for Google Play, which forbids self-updates; Play delivers the updates instead.
+    flavorDimensions = ['dist']
+    productFlavors {
+        sideload {
+            dimension 'dist'
+            buildConfigField 'boolean', 'SELF_UPDATE', 'true'
+        }
+        play {
+            dimension 'dist'
+            buildConfigField 'boolean', 'SELF_UPDATE', 'false'
+        }
+    }
+
+    signingConfigs {
+        release {
+            if (keystorePath) {
+                storeFile file(keystorePath)
+                storePassword System.getenv('MG_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('MG_KEY_ALIAS') ?: 'margingo'
+                keyPassword System.getenv('MG_KEYSTORE_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (keystorePath) signingConfig signingConfigs.release
+        }
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.12.1'
+}

@@ -1,0 +1,991 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Bridge features this page needs from the Android app (see WebUpdater.NATIVE_API). -->
+<meta name="margingo-native-api" content="1">
+<meta name="theme-color" content="#0f1512">
+<title>MarginGo</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+:root{
+  --bg:#0f1512; --panel:#172019; --panel2:#1e2a22; --line:#2a382f; --text:#e8f0ea; --muted:#8fa396;
+  --accent:#3fd68b; --accent-ink:#06210f;
+  --red:#ff6b6b; --orange:#ffa94d; --yellow:#ffd43b; --green:#51cf66;
+  --radius:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+body{padding-bottom:calc(72px + env(safe-area-inset-bottom))}
+button,input,select,textarea{font:inherit;color:inherit}
+header{position:sticky;top:0;z-index:5;background:var(--bg);padding:12px 16px 8px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line)}
+header h1{font-size:19px;margin:0;flex:1;letter-spacing:.2px}
+header h1 span{color:var(--accent)}
+header .cash{font-size:13px;color:var(--muted);text-align:right}
+header .cash b{display:block;color:var(--accent);font-size:16px}
+main{padding:12px 16px;max-width:760px;margin:0 auto}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;background:var(--panel);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;background:none;border:0;padding:9px 2px 8px;color:var(--muted);font-size:11.5px;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+nav button.on{color:var(--accent)}
+.seg{display:flex;background:var(--panel);border-radius:12px;padding:3px;gap:3px;margin-bottom:10px}
+.seg button{flex:1;border:0;background:none;padding:8px 4px;border-radius:9px;color:var(--muted);font-size:14px}
+.seg button.on{background:var(--panel2);color:var(--text);font-weight:600}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:8px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{border:1px solid var(--line);background:none;border-radius:99px;padding:6px 12px;white-space:nowrap;color:var(--muted);font-size:13.5px}
+.chip.on{border-color:var(--accent);color:var(--accent)}
+.tools{display:flex;gap:8px;margin-bottom:10px}
+.tools input,.tools select{flex:1;min-width:0}
+input,select,textarea{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 11px;width:100%;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+textarea{min-height:64px;resize:vertical}
+label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+.hint{font-size:12.5px;color:var(--muted);margin:4px 0 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px 13px;margin-bottom:9px}
+.item{border-left:5px solid var(--line);cursor:pointer}
+.item.c-red{border-left-color:var(--red)} .item.c-orange{border-left-color:var(--orange)}
+.item.c-yellow{border-left-color:var(--yellow)} .item.c-green{border-left-color:var(--green)}
+.item .r1{display:flex;gap:8px;align-items:flex-start}
+.item .r1 b{flex:1;font-size:15.5px;word-break:break-word}
+.item .r2{font-size:12.5px;color:var(--muted);margin-top:3px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.item .r3{margin-top:6px;font-size:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:baseline}
+.badge{font-weight:700;border-radius:8px;padding:2px 8px;font-size:14px;white-space:nowrap}
+.b-red{background:rgba(255,107,107,.16);color:var(--red)} .b-orange{background:rgba(255,169,77,.16);color:var(--orange)}
+.b-yellow{background:rgba(255,212,59,.14);color:var(--yellow)} .b-green{background:rgba(81,207,102,.16);color:var(--green)}
+.pill{border-radius:6px;padding:1px 7px;background:var(--panel2);color:var(--text);font-size:11.5px}
+.pos{color:var(--green)} .neg{color:var(--red)} .muted{color:var(--muted)}
+.btn{border:0;border-radius:11px;padding:11px 14px;background:var(--panel2);color:var(--text);font-weight:600;cursor:pointer}
+.btn.pri{background:var(--accent);color:var(--accent-ink)}
+.btn.danger{background:rgba(255,107,107,.14);color:var(--red)}
+.btn.small{padding:7px 11px;font-size:13.5px}
+.btn:disabled{opacity:.45}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row .btn{flex:1}
+.fab{position:fixed;right:18px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:6;width:56px;height:56px;border-radius:18px;border:0;background:var(--accent);color:var(--accent-ink);font-size:30px;line-height:1;box-shadow:0 6px 18px rgba(0,0,0,.4)}
+.empty{text-align:center;color:var(--muted);padding:28px 10px}
+.empty p{max-width:420px;margin:0 auto 14px}
+.big{font-size:30px;font-weight:750;letter-spacing:-.5px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px}
+.kpis .card{margin:0}
+.kpi-l{font-size:12.5px;color:var(--muted)} .kpi-v{font-size:19px;font-weight:700;margin-top:2px}
+h2{font-size:15px;margin:18px 0 8px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.6px}
+.list-row{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px;align-items:center}
+.list-row:last-child{border-bottom:0}
+.list-row .l{flex:1;min-width:0}
+.list-row .l small{display:block;color:var(--muted);font-size:12px}
+.bar{height:8px;border-radius:4px;background:var(--panel2);overflow:hidden;margin-top:5px}
+.bar i{display:block;height:100%;background:var(--accent)}
+.bar i.neg{background:var(--red)}
+.x{border:0;background:none;color:var(--muted);font-size:18px;padding:2px 6px}
+#veil{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:20;display:none}
+#sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--bg);border-top:1px solid var(--line);border-radius:18px 18px 0 0;max-height:92vh;overflow:auto;padding:14px 16px calc(18px + env(safe-area-inset-bottom));display:none;max-width:760px;margin:0 auto}
+#sheet.open,#veil.open{display:block}
+#sheet h3{margin:0 0 6px;font-size:18px;display:flex;align-items:center;gap:8px}
+#sheet h3 span{flex:1}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.facts div{background:var(--panel);border-radius:10px;padding:8px 10px}
+.facts small{display:block;color:var(--muted);font-size:12px}
+#toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:9px 14px;border-radius:10px;z-index:30;display:none;max-width:90vw;text-align:center}
+.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:-2px 0 10px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:4px;vertical-align:0}
+a{color:var(--accent)}
+.sp{height:10px}
+</style>
+</head>
+<body>
+<div id="mg-app">
+  <header>
+    <h1>Margin<span>Go</span></h1>
+    <div class="cash" data-a="tab" data-id="cash"><span id="hdrCashL"></span><b id="hdrCash"></b></div>
+  </header>
+  <main id="main"></main>
+  <button class="fab" id="fab" data-a="newItem" aria-label="+">+</button>
+  <nav id="nav"></nav>
+</div>
+<div id="veil" data-a="closeSheet"></div>
+<div id="sheet" role="dialog"></div>
+<div id="toast"></div>
+<input type="file" id="importFile" accept=".json,application/json,text/plain" hidden>
+
+<script>
+'use strict';
+/* ================= i18n ================= */
+const I18N = {
+sr:{
+ 'app.lang':'Српски','tab.items':'Артикли','tab.trips':'Путовања','tab.cash':'Каса','tab.stats':'Статистика','tab.more':'Опције',
+ 'scope.all':'Све','scope.local':'Локално','scope.trip':'Путовања',
+ 'f.active':'Активни','f.watch':'Праћење','f.stock':'На стању','f.done':'Готови','f.all':'Све',
+ 'sort.roi':'Највећи %','sort.profit':'Највећа зарада','sort.new':'Најновији','sort.name':'По имену',
+ 'search':'Претрага…','allCats':'Све категорије',
+ 'addItem':'Нови артикал','editItem':'Измени артикал','name':'Назив','category':'Категорија','status':'Статус','qty':'Количина',
+ 'buyPrice':'Набавна цена (по комаду)','estSell':'Процењена продајна (по комаду)',
+ 'buyHint':'Нешто што већ имаш и не треба ти? Упиши 0 или малу суму — разлика иде у касу.',
+ 'costs':'Додатни трошкови (kr, укупно)','costsHint':'Поштарина, провизија, пртљаг… Остави празно ако их нема.',
+ 'link':'Линк огласа','note':'Коментар','trip':'Путовање','noTrip':'— без путовања (локално) —',
+ 'buyCur':'Валута куповине','sellCur':'Валута продаје',
+ 'save':'Сачувај','cancel':'Откажи','delete':'Обриши','close':'Затвори','edit':'Измени',
+ 'st.watch':'Праћење','st.bought':'Купљено','st.transit':'У транзиту','st.listed':'На огласу','st.sold':'Продато','st.writeoff':'Отписано',
+ 'act.bought':'Купио сам','act.transit':'У транзиту','act.listed':'На огласу','act.sell':'Продато…','act.writeoff':'Отпиши…','act.open':'Отвори оглас',
+ 'cost':'Набавка','est':'Процена','profit':'Зарада','estProfit':'Очекивана зарада','realProfit':'Остварена зарада','free':'бесплатно','each':'по ком.','left':'преостало',
+ 'sellTitle':'Продаја','sellQty':'Продато комада','sellPrice':'Добијено укупно','sellFee':'Трошкови продаје (kr)','date':'Датум','currency':'Валута',
+ 'woTitle':'Отпис','woText':'Артикал се не може продати (покварен, поклоњен, изгубљен). Набавна цена се рачуна као губитак.','woQty':'Комада за отпис',
+ 'confirmDelete':'Обрисати „{n}“? Његове продаје нестају из касе и статистике.','confirmSale':'Обрисати ову продају?',
+ 'empty.items':'Још нема артикала. Додај нешто што видиш на Finn-у, или нешто што већ имаш и хоћеш да продаш.',
+ 'empty.filter':'Ништа не одговара филтеру.','sales':'Продаје','added':'Додато','soldOf':'{a} од {b} продато',
+ 'legend':'Боје: зарада у % на уложено',
+ 'tripNew':'Ново путовање','tripEdit':'Измени путовање','tripName':'Назив путовања','tripNamePh':'нпр. Осло → Београд, јун',
+ 'market.buy':'Купујем на','market.sell':'Продајем на','tripCost':'Цена пута (kr)','tripCostHint':'Карта, смештај… — да видиш колико те пут кошта после зараде.',
+ 'from':'Од','to':'До','covered':'пута исплаћено','tripProfit':'Зарада са пута','tripEst':'Још очекујеш','tripItems':'Артикли на путу','addToTrip':'Додај артикал',
+ 'empty.trips':'Путовање повезује артикле купљене на једној пијаци и продате на другој (нпр. KupujemProdajem → Finn), у различитим валутама. Видиш колико ти је пут вратио.',
+ 'cash.box':'Каса зараде','cash.boxHint':'Зарада од продаја. Ово је новац који празниш.','cash.capital':'Капитал','cash.free':'Слободно','cash.goods':'У роби',
+ 'cash.ownPocket':'Уложио си више од капитала — разлика је из твог џепа.',
+ 'cash.total':'Укупно зарађено','cash.totalHint':'Никад се не ресетује.','cash.empty':'Испразни касу','cash.capIn':'Уложи капитал','cash.capOut':'Врати капитал',
+ 'cash.how':'Како ради?',
+ 'cash.howText':'<p><b>Капитал</b> је новац који одвојиш за куповину робе (нпр. 3.000 kr). Кад купиш артикал, новац прелази из „Слободно“ у „У роби“.</p><p>Кад продаш, <b>набавна цена се враћа у капитал</b>, а само <b>разлика иде у касу зараде</b>. Тако капитал стално ради, а каса расте.</p><p>Касу празниш кад хоћеш и бираш куда иде новац. Ако изабереш „Назад у робу“, новац из касе прелази у капитал — даље улагање. Кад хоћеш да вратиш почетни новац себи, користи „Врати капитал“.</p><p>Проценат на артиклу се увек рачуна исто: зарада подељено са набавком — без обзира одакле је новац дошао. „Укупно зарађено“ се никад не ресетује.</p>',
+ 'cash.history':'Историја','amount':'Износ (kr)','purpose':'Куда иде новац','tooMuch':'Износ је већи од касе.','capTooMuch':'Износ је већи од слободног капитала.',
+ 'p.reinvest':'Назад у робу (капитал)','p.trip':'Путовање','p.fun':'Ужитак','p.save':'Штедња',
+ 'h.sale':'Продаја','h.writeoff':'Отпис','h.withdraw':'Пражњење касе','h.reinvest':'Уложено назад у робу','h.capIn':'Уложен капитал','h.capOut':'Враћен капитал',
+ 'empty.history':'Још нема промена.',
+ 'stats.sold':'Продато комада','stats.avgRoi':'Просечно на уложено','stats.days':'Дана до продаје','stats.byCat':'По категорији','stats.byMonth':'Зарада по месецима',
+ 'stats.byPurpose':'Куда је отишао новац','stats.best':'Најбоље продаје','stats.none':'Статистика се појављује после прве продаје.','stats.trips':'Путовања',
+ 'set.lang':'Језик','set.colors':'Боје на листи','set.colorsHint':'Испод првог прага је црвено.','set.orange':'Наранџасто од %','set.yellow':'Жуто од %','set.green':'Зелено од %',
+ 'set.cats':'Категорије','set.purposes':'Куда иде новац из касе','set.newCat':'Нова категорија…','set.newPurpose':'Нова намена…','rename':'Преименуј','newName':'Ново име:',
+ 'set.inUse':'Ово се користи. Обрисати свеједно?',
+ 'set.rates':'Курсеви','set.ratesHint':'Колико kr вреди 1 јединица. Преузима се аутоматски највише двапут дневно; можеш и да упишеш ручно (празно = аутоматски).',
+ 'set.ratesAt':'Ажурирано','set.refresh':'Освежи курсеве','set.ratesFail':'Курсеви нису преузети. Има ли интернета?','set.ratesOk':'Курсеви освежени.','set.approx':'приближни, још нису преузети',
+ 'set.backup':'Бекап','set.backupHint':'Подаци живе само на овом телефону. Повремено извези бекап (нпр. на Google Drive), а пре брисања апликације обавезно.',
+ 'set.export':'Извези бекап','set.import':'Увези бекап','set.csv':'Извези продаје (CSV)','set.importOk':'Бекап увезен.','set.importBad':'Ово није MarginGo бекап.',
+ 'set.importConfirm':'Увоз замењује све тренутне податке. Наставити?','set.updates':'Провери ажурирања','set.version':'Верзија','set.about':'MarginGo — праћење хоби препродаје. Све остаје на твом уређају.',
+ 'cat.tech':'Техника','cat.collect':'Колекционарство','cat.clothes':'Одећа','cat.furniture':'Намештај','cat.sport':'Спорт','cat.other':'Остало',
+ 'shared':'Линк је преузет — допуни цене.','saved':'Сачувано','required':'Упиши назив.','days':'дана'
+},
+en:{
+ 'app.lang':'English','tab.items':'Items','tab.trips':'Trips','tab.cash':'Cash','tab.stats':'Stats','tab.more':'Settings',
+ 'scope.all':'All','scope.local':'Local','scope.trip':'Trips',
+ 'f.active':'Active','f.watch':'Watching','f.stock':'In stock','f.done':'Done','f.all':'All',
+ 'sort.roi':'Highest %','sort.profit':'Biggest profit','sort.new':'Newest','sort.name':'By name',
+ 'search':'Search…','allCats':'All categories',
+ 'addItem':'New item','editItem':'Edit item','name':'Name','category':'Category','status':'Status','qty':'Quantity',
+ 'buyPrice':'Purchase price (each)','estSell':'Expected sale price (each)',
+ 'buyHint':'Something you already own and don’t need? Enter 0 or a small amount — the difference goes to the cash box.',
+ 'costs':'Extra costs (kr, total)','costsHint':'Shipping, fees, luggage… Leave empty if none.',
+ 'link':'Listing link','note':'Note','trip':'Trip','noTrip':'— no trip (local) —',
+ 'buyCur':'Buying currency','sellCur':'Selling currency',
+ 'save':'Save','cancel':'Cancel','delete':'Delete','close':'Close','edit':'Edit',
+ 'st.watch':'Watching','st.bought':'Bought','st.transit':'In transit','st.listed':'Listed','st.sold':'Sold','st.writeoff':'Written off',
+ 'act.bought':'I bought it','act.transit':'In transit','act.listed':'Listed','act.sell':'Sold…','act.writeoff':'Write off…','act.open':'Open listing',
+ 'cost':'Cost','est':'Estimate','profit':'Profit','estProfit':'Expected profit','realProfit':'Realised profit','free':'free','each':'each','left':'left',
+ 'sellTitle':'Sale','sellQty':'Units sold','sellPrice':'Received in total','sellFee':'Selling costs (kr)','date':'Date','currency':'Currency',
+ 'woTitle':'Write-off','woText':'The item can’t be sold (broken, given away, lost). Its cost counts as a loss.','woQty':'Units to write off',
+ 'confirmDelete':'Delete “{n}”? Its sales disappear from the cash box and stats.','confirmSale':'Delete this sale?',
+ 'empty.items':'No items yet. Add something you spotted on Finn, or something you own and want to sell.',
+ 'empty.filter':'Nothing matches the filter.','sales':'Sales','added':'Added','soldOf':'{a} of {b} sold',
+ 'legend':'Colours: profit in % of what you paid',
+ 'tripNew':'New trip','tripEdit':'Edit trip','tripName':'Trip name','tripNamePh':'e.g. Oslo → Belgrade, June',
+ 'market.buy':'Buying at','market.sell':'Selling at','tripCost':'Trip cost (kr)','tripCostHint':'Tickets, stay… — to see how much of the trip your profit paid for.',
+ 'from':'From','to':'To','covered':'of the trip paid','tripProfit':'Trip profit','tripEst':'Still expected','tripItems':'Items on this trip','addToTrip':'Add item',
+ 'empty.trips':'A trip links items bought on one market and sold on another (e.g. KupujemProdajem → Finn), in different currencies. See how much of the trip they paid for.',
+ 'cash.box':'Profit cash box','cash.boxHint':'Profit from sales. This is the money you spend.','cash.capital':'Capital','cash.free':'Available','cash.goods':'In stock',
+ 'cash.ownPocket':'You have spent more than your capital — the difference came from your own pocket.',
+ 'cash.total':'Total earned','cash.totalHint':'Never reset.','cash.empty':'Empty cash box','cash.capIn':'Add capital','cash.capOut':'Take capital back',
+ 'cash.how':'How it works',
+ 'cash.howText':'<p><b>Capital</b> is the money you set aside for buying stock (say 3,000 kr). When you buy an item, money moves from “Available” to “In stock”.</p><p>When you sell, <b>the purchase price goes back to capital</b> and only <b>the difference goes to the profit cash box</b>. Capital keeps working while the cash box grows.</p><p>Empty the cash box whenever you like and choose where the money goes. “Back into stock” moves it into capital — reinvesting. To pay your starting money back to yourself, use “Take capital back”.</p><p>An item’s % is always profit divided by cost, wherever the money came from. “Total earned” is never reset.</p>',
+ 'cash.history':'History','amount':'Amount (kr)','purpose':'Where the money goes','tooMuch':'That is more than the cash box.','capTooMuch':'That is more than the available capital.',
+ 'p.reinvest':'Back into stock (capital)','p.trip':'Travel','p.fun':'Treat','p.save':'Savings',
+ 'h.sale':'Sale','h.writeoff':'Write-off','h.withdraw':'Cash out','h.reinvest':'Reinvested in stock','h.capIn':'Capital added','h.capOut':'Capital returned',
+ 'empty.history':'Nothing yet.',
+ 'stats.sold':'Units sold','stats.avgRoi':'Average return','stats.days':'Days to sell','stats.byCat':'By category','stats.byMonth':'Profit by month',
+ 'stats.byPurpose':'Where the money went','stats.best':'Best sales','stats.none':'Stats appear after your first sale.','stats.trips':'Trips',
+ 'set.lang':'Language','set.colors':'List colours','set.colorsHint':'Below the first threshold is red.','set.orange':'Orange from %','set.yellow':'Yellow from %','set.green':'Green from %',
+ 'set.cats':'Categories','set.purposes':'Where cash-box money goes','set.newCat':'New category…','set.newPurpose':'New purpose…','rename':'Rename','newName':'New name:',
+ 'set.inUse':'This is in use. Delete anyway?',
+ 'set.rates':'Exchange rates','set.ratesHint':'What 1 unit is worth in kr. Downloaded automatically at most twice a day; you can also type your own (empty = automatic).',
+ 'set.ratesAt':'Updated','set.refresh':'Refresh rates','set.ratesFail':'Could not download rates. Are you online?','set.ratesOk':'Rates refreshed.','set.approx':'approximate, not downloaded yet',
+ 'set.backup':'Backup','set.backupHint':'Your data lives only on this phone. Export a backup now and then (e.g. to Google Drive), and always before uninstalling.',
+ 'set.export':'Export backup','set.import':'Import backup','set.csv':'Export sales (CSV)','set.importOk':'Backup imported.','set.importBad':'This is not a MarginGo backup.',
+ 'set.importConfirm':'Importing replaces all current data. Continue?','set.updates':'Check for updates','set.version':'Version','set.about':'MarginGo — hobby resale tracker. Everything stays on your device.',
+ 'cat.tech':'Electronics','cat.collect':'Collectibles','cat.clothes':'Clothing','cat.furniture':'Furniture','cat.sport':'Sports','cat.other':'Other',
+ 'shared':'Link added — fill in the prices.','saved':'Saved','required':'Enter a name.','days':'days'
+},
+nb:{
+ 'app.lang':'Norsk','tab.items':'Varer','tab.trips':'Turer','tab.cash':'Kasse','tab.stats':'Statistikk','tab.more':'Mer',
+ 'scope.all':'Alle','scope.local':'Lokalt','scope.trip':'Turer',
+ 'f.active':'Aktive','f.watch':'Følger','f.stock':'På lager','f.done':'Ferdige','f.all':'Alle',
+ 'sort.roi':'Høyest %','sort.profit':'Størst fortjeneste','sort.new':'Nyeste','sort.name':'Etter navn',
+ 'search':'Søk…','allCats':'Alle kategorier',
+ 'addItem':'Ny vare','editItem':'Endre vare','name':'Navn','category':'Kategori','status':'Status','qty':'Antall',
+ 'buyPrice':'Innkjøpspris (per stk)','estSell':'Forventet salgspris (per stk)',
+ 'buyHint':'Noe du allerede eier og ikke trenger? Skriv 0 eller et lite beløp — differansen går i kassen.',
+ 'costs':'Ekstra kostnader (kr, totalt)','costsHint':'Frakt, gebyrer, bagasje… La stå tomt om ingen.',
+ 'link':'Lenke til annonse','note':'Notat','trip':'Tur','noTrip':'— ingen tur (lokalt) —',
+ 'buyCur':'Innkjøpsvaluta','sellCur':'Salgsvaluta',
+ 'save':'Lagre','cancel':'Avbryt','delete':'Slett','close':'Lukk','edit':'Endre',
+ 'st.watch':'Følger','st.bought':'Kjøpt','st.transit':'Underveis','st.listed':'Annonsert','st.sold':'Solgt','st.writeoff':'Avskrevet',
+ 'act.bought':'Jeg kjøpte den','act.transit':'Underveis','act.listed':'Annonsert','act.sell':'Solgt…','act.writeoff':'Avskriv…','act.open':'Åpne annonse',
+ 'cost':'Kost','est':'Estimat','profit':'Fortjeneste','estProfit':'Forventet fortjeneste','realProfit':'Oppnådd fortjeneste','free':'gratis','each':'per stk','left':'igjen',
+ 'sellTitle':'Salg','sellQty':'Solgte stk','sellPrice':'Mottatt totalt','sellFee':'Salgskostnader (kr)','date':'Dato','currency':'Valuta',
+ 'woTitle':'Avskrivning','woText':'Varen kan ikke selges (ødelagt, gitt bort, mistet). Kostprisen regnes som tap.','woQty':'Stk å avskrive',
+ 'confirmDelete':'Slette «{n}»? Salgene forsvinner fra kassen og statistikken.','confirmSale':'Slette dette salget?',
+ 'empty.items':'Ingen varer ennå. Legg til noe du så på Finn, eller noe du eier og vil selge.',
+ 'empty.filter':'Ingenting passer filteret.','sales':'Salg','added':'Lagt til','soldOf':'{a} av {b} solgt',
+ 'legend':'Farger: fortjeneste i % av det du betalte',
+ 'tripNew':'Ny tur','tripEdit':'Endre tur','tripName':'Turens navn','tripNamePh':'f.eks. Oslo → Beograd, juni',
+ 'market.buy':'Kjøper på','market.sell':'Selger på','tripCost':'Turens kostnad (kr)','tripCostHint':'Billetter, overnatting… — se hvor mye av turen fortjenesten betalte.',
+ 'from':'Fra','to':'Til','covered':'av turen betalt','tripProfit':'Fortjeneste på turen','tripEst':'Forventet ennå','tripItems':'Varer på turen','addToTrip':'Legg til vare',
+ 'empty.trips':'En tur kobler varer kjøpt på ett marked og solgt på et annet (f.eks. KupujemProdajem → Finn), i ulike valutaer. Se hvor mye av turen de betalte.',
+ 'cash.box':'Fortjenestekasse','cash.boxHint':'Fortjeneste fra salg. Dette er pengene du bruker.','cash.capital':'Kapital','cash.free':'Ledig','cash.goods':'I varer',
+ 'cash.ownPocket':'Du har brukt mer enn kapitalen — differansen kom fra egen lomme.',
+ 'cash.total':'Totalt tjent','cash.totalHint':'Nullstilles aldri.','cash.empty':'Tøm kassen','cash.capIn':'Sett inn kapital','cash.capOut':'Ta ut kapital',
+ 'cash.how':'Slik fungerer det',
+ 'cash.howText':'<p><b>Kapital</b> er pengene du setter av til innkjøp (f.eks. 3 000 kr). Når du kjøper en vare, flyttes pengene fra «Ledig» til «I varer».</p><p>Når du selger, <b>går innkjøpsprisen tilbake til kapitalen</b>, og bare <b>differansen går i fortjenestekassen</b>. Kapitalen jobber videre mens kassen vokser.</p><p>Tøm kassen når du vil og velg hva pengene går til. «Tilbake i varer» flytter dem til kapitalen — reinvestering. For å betale startbeløpet tilbake til deg selv, bruk «Ta ut kapital».</p><p>Prosenten på en vare er alltid fortjeneste delt på kost, uansett hvor pengene kom fra. «Totalt tjent» nullstilles aldri.</p>',
+ 'cash.history':'Historikk','amount':'Beløp (kr)','purpose':'Hva pengene går til','tooMuch':'Beløpet er større enn kassen.','capTooMuch':'Beløpet er større enn ledig kapital.',
+ 'p.reinvest':'Tilbake i varer (kapital)','p.trip':'Reise','p.fun':'Kos','p.save':'Sparing',
+ 'h.sale':'Salg','h.writeoff':'Avskrivning','h.withdraw':'Uttak fra kassen','h.reinvest':'Reinvestert i varer','h.capIn':'Kapital satt inn','h.capOut':'Kapital tatt ut',
+ 'empty.history':'Ingenting ennå.',
+ 'stats.sold':'Solgte stk','stats.avgRoi':'Snittavkastning','stats.days':'Dager til salg','stats.byCat':'Etter kategori','stats.byMonth':'Fortjeneste per måned',
+ 'stats.byPurpose':'Hva pengene gikk til','stats.best':'Beste salg','stats.none':'Statistikk vises etter første salg.','stats.trips':'Turer',
+ 'set.lang':'Språk','set.colors':'Farger i listen','set.colorsHint':'Under første terskel er rødt.','set.orange':'Oransje fra %','set.yellow':'Gul fra %','set.green':'Grønn fra %',
+ 'set.cats':'Kategorier','set.purposes':'Hva kassepengene går til','set.newCat':'Ny kategori…','set.newPurpose':'Nytt formål…','rename':'Gi nytt navn','newName':'Nytt navn:',
+ 'set.inUse':'Dette er i bruk. Slette likevel?',
+ 'set.rates':'Valutakurser','set.ratesHint':'Hva 1 enhet er verdt i kr. Lastes ned automatisk maks to ganger om dagen; du kan også skrive inn selv (tomt = automatisk).',
+ 'set.ratesAt':'Oppdatert','set.refresh':'Oppdater kurser','set.ratesFail':'Kunne ikke laste ned kurser. Er du på nett?','set.ratesOk':'Kurser oppdatert.','set.approx':'omtrentlige, ikke lastet ned ennå',
+ 'set.backup':'Sikkerhetskopi','set.backupHint':'Dataene finnes bare på denne telefonen. Eksporter en kopi av og til (f.eks. til Google Drive), og alltid før du avinstallerer.',
+ 'set.export':'Eksporter','set.import':'Importer','set.csv':'Eksporter salg (CSV)','set.importOk':'Sikkerhetskopi importert.','set.importBad':'Dette er ikke en MarginGo-sikkerhetskopi.',
+ 'set.importConfirm':'Import erstatter alle nåværende data. Fortsette?','set.updates':'Se etter oppdateringer','set.version':'Versjon','set.about':'MarginGo — oversikt over bruktsalg. Alt blir på enheten din.',
+ 'cat.tech':'Elektronikk','cat.collect':'Samleobjekter','cat.clothes':'Klær','cat.furniture':'Møbler','cat.sport':'Sport','cat.other':'Annet',
+ 'shared':'Lenke lagt til — fyll inn prisene.','saved':'Lagret','required':'Skriv inn et navn.','days':'dager'
+}};
+const LOCALE = {sr:'sr-RS', en:'en-GB', nb:'nb-NO'};
+function t(k, vars){
+  let s = (I18N[D.lang] || I18N.sr)[k] ?? I18N.en[k] ?? k;
+  if(vars) for(const v in vars) s = s.replace('{'+v+'}', vars[v]);
+  return s;
+}
+
+/* ================= data ================= */
+const KEY = 'margingo';
+const CURS = ['NOK','EUR','RSD','SEK','DKK','USD','GBP','PLN','BAM','HUF','CHF'];
+// Approximate kr per unit, used only until the first download.
+const DEF_RATES = {NOK:1,EUR:11.7,RSD:0.1,SEK:0.98,DKK:1.57,USD:10.3,GBP:13.8,PLN:2.75,BAM:6,HUF:0.029,CHF:12.5};
+const OPEN = ['bought','transit','listed'];
+
+function blank(){
+  return {
+    v:1, lang:'sr', th:[0,20,50],
+    cats:['tech','collect','clothes','furniture','sport','other'].map(k => ({id:k, key:'cat.'+k})),
+    purposes:[{id:'reinvest', key:'p.reinvest'}, {id:'trip', key:'p.trip'}, {id:'fun', key:'p.fun'}, {id:'save', key:'p.save'}],
+    items:[], trips:[], ledger:[],
+    rates:{...DEF_RATES}, ratesAt:0, manual:{},
+    ui:{tab:'items', scope:'all', filter:'active', sort:'roi', cat:'', q:''}
+  };
+}
+function load(){
+  let d = null;
+  try { d = JSON.parse(localStorage.getItem(KEY)); } catch(e){}
+  return normalize(d);
+}
+function normalize(d){
+  const b = blank();
+  if(!d || typeof d !== 'object' || !Array.isArray(d.items)) return b;
+  const out = Object.assign(b, d);
+  out.ui = Object.assign(blank().ui, d.ui || {});
+  out.rates = Object.assign({...DEF_RATES}, d.rates || {});
+  out.manual = d.manual || {};
+  for(const it of out.items){ it.sales = it.sales || []; it.qty = Math.max(1, +it.qty || 1); }
+  return out;
+}
+function save(){
+  try { localStorage.setItem(KEY, JSON.stringify(D)); }
+  catch(e){ toast('localStorage: ' + e.message); }
+}
+let D = load();
+
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+const num = v => { const n = parseFloat(String(v ?? '').replace(/\s/g,'').replace(',', '.')); return isFinite(n) ? n : 0; };
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const byId = (arr, id) => arr.find(x => x.id === id);
+
+/* ================= money ================= */
+function rate(cur){ return cur === 'NOK' ? 1 : (+D.manual[cur] || +D.rates[cur] || DEF_RATES[cur] || 1); }
+function fmtNum(n, dec){
+  return new Intl.NumberFormat(LOCALE[D.lang] || 'sr-RS', {maximumFractionDigits:dec, minimumFractionDigits:0}).format(n);
+}
+function kr(n){ return fmtNum(Math.round(n), 0) + ' kr'; }
+function money(n, cur){ return cur === 'NOK' ? kr(n) : fmtNum(n, Math.abs(n) < 100 ? 2 : 0) + ' ' + cur; }
+function signed(n){ return (n > 0.5 ? '+' : '') + kr(n); }
+function pct(p){ return p === Infinity ? '∞' : (p > 0 ? '+' : '') + fmtNum(Math.round(p), 0) + '%'; }
+function colorOf(p){
+  const [o, y, g] = D.th;
+  if(p === Infinity || p >= g) return 'green';
+  if(p >= y) return 'yellow';
+  if(p >= o) return 'orange';
+  return 'red';
+}
+
+/* Per unit, in kr. The purchase rate is frozen when the item is bought; before that it follows today's rate. */
+function unitCost(it){ return num(it.buyPrice) * (it.status === 'watch' || !it.buyRate ? rate(it.buyCur) : it.buyRate); }
+function unitExtra(it){ return num(it.costs) / (it.qty || 1); }
+function unitBase(it){ return unitCost(it) + unitExtra(it); }
+function unitEst(it){ return num(it.estSell) * rate(it.sellCur); }
+function soldQty(it){ return it.sales.reduce((s, x) => s + x.qty, 0); }
+function leftQty(it){ return Math.max(0, it.qty - soldQty(it)); }
+function saleProfit(it, s){ return s.nok - s.qty * unitBase(it) - (s.fee || 0); }
+function saleBase(it, s){ return s.qty * unitBase(it) + (s.fee || 0); }
+function roi(profit, base){ return base > 0.005 ? profit / base * 100 : (profit > 0 ? Infinity : 0); }
+function isDone(it){ return it.status === 'sold' || it.status === 'writeoff'; }
+
+/* What the list shows: realised numbers for finished items, expected ones otherwise. */
+function itemView(it){
+  if(isDone(it)){
+    let p = 0, b = 0;
+    for(const s of it.sales){ p += saleProfit(it, s); b += saleBase(it, s); }
+    return {profit:p, roi:roi(p, b), real:true};
+  }
+  const p = unitEst(it) - unitBase(it);
+  return {profit:p * (it.status === 'watch' ? it.qty : leftQty(it)), unit:p, roi:roi(p, unitBase(it)), real:false};
+}
+function refreshStatus(it){
+  if(leftQty(it) === 0 && it.sales.length) it.status = it.sales.every(s => s.w) ? 'writeoff' : 'sold';
+  else if(isDone(it)) it.status = 'listed';
+}
+
+function totals(){
+  let profit = 0, goods = 0, sold = 0;
+  for(const it of D.items){
+    for(const s of it.sales){ profit += saleProfit(it, s); if(!s.w) sold += s.qty; }
+    if(it.status !== 'watch') goods += leftQty(it) * unitBase(it);
+  }
+  const L = {capIn:0, capOut:0, withdraw:0, reinvest:0};
+  for(const e of D.ledger) L[e.t] = (L[e.t] || 0) + e.amt;
+  return {
+    profit, goods, sold,
+    box: profit - L.withdraw - L.reinvest,
+    free: L.capIn - L.capOut + L.reinvest - goods,
+    capital: L.capIn - L.capOut + L.reinvest
+  };
+}
+
+/* ================= labels ================= */
+const catName = id => { const c = byId(D.cats, id); return c ? (c.key ? t(c.key) : c.name) : '—'; };
+const purposeName = id => { const p = byId(D.purposes, id); return p ? (p.key ? t(p.key) : p.name) : '—'; };
+const tripOf = it => it.tripId ? byId(D.trips, it.tripId) : null;
+
+/* ================= UI shell ================= */
+const ICONS = {
+  items:'<path d="M4 7h16M4 12h16M4 17h10"/>',
+  trips:'<path d="M2 16l8-2 4-8 2 1-2 6 6-1 2 2-8 4-9 1z"/>',
+  cash:'<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 15h2"/>',
+  stats:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  more:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>'
+};
+function renderNav(){
+  document.getElementById('nav').innerHTML = Object.keys(ICONS).map(k =>
+    `<button data-a="tab" data-id="${k}" class="${D.ui.tab === k ? 'on' : ''}"><svg viewBox="0 0 24 24">${ICONS[k]}</svg>${esc(t('tab.' + k))}</button>`).join('');
+}
+function render(){
+  document.documentElement.lang = D.lang === 'nb' ? 'nb' : D.lang;
+  renderNav();
+  const T = totals();
+  document.getElementById('hdrCashL').textContent = t('cash.box');
+  document.getElementById('hdrCash').textContent = kr(T.box);
+  document.getElementById('fab').style.display = (D.ui.tab === 'items' || D.ui.tab === 'trips') ? '' : 'none';
+  const main = document.getElementById('main');
+  main.innerHTML = ({items:viewItems, trips:viewTrips, cash:viewCash, stats:viewStats, more:viewMore})[D.ui.tab](T);
+}
+
+/* ---------- items ---------- */
+function filtered(){
+  const u = D.ui, q = u.q.trim().toLowerCase();
+  let list = D.items.filter(it => {
+    if(u.scope === 'local' && it.tripId) return false;
+    if(u.scope === 'trip' && !it.tripId) return false;
+    if(u.cat && it.cat !== u.cat) return false;
+    if(u.filter === 'active' && isDone(it)) return false;
+    if(u.filter === 'watch' && it.status !== 'watch') return false;
+    if(u.filter === 'stock' && !OPEN.includes(it.status)) return false;
+    if(u.filter === 'done' && !isDone(it)) return false;
+    if(q && !(it.name + ' ' + (it.note || '')).toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const V = new Map(list.map(it => [it, itemView(it)]));
+  const cmp = {
+    roi: (a, b) => (V.get(b).roi === V.get(a).roi ? 0 : V.get(b).roi > V.get(a).roi ? 1 : -1),
+    profit: (a, b) => V.get(b).profit - V.get(a).profit,
+    new: (a, b) => (b.created || '').localeCompare(a.created || '') || b.id.localeCompare(a.id),
+    name: (a, b) => a.name.localeCompare(b.name)
+  }[u.sort];
+  return list.sort(cmp).map(it => [it, V.get(it)]);
+}
+function itemCard(it, v){
+  const c = colorOf(v.roi), trip = tripOf(it);
+  const left = leftQty(it);
+  const qtyTxt = it.qty > 1 ? (isDone(it) || !it.sales.length ? ` ×${it.qty}` : ` · ${t('soldOf', {a:soldQty(it), b:it.qty})}`) : '';
+  const costTxt = num(it.buyPrice) === 0 ? t('free') : money(num(it.buyPrice), it.buyCur);
+  return `<div class="card item c-${c}" data-a="openItem" data-id="${it.id}">
+    <div class="r1"><b>${esc(it.name)}</b><span class="badge b-${c}">${pct(v.roi)}</span></div>
+    <div class="r2"><span class="pill">${esc(t('st.' + it.status))}</span><span>${esc(catName(it.cat))}${trip ? ' · ' + esc(trip.name) : ''}${qtyTxt}</span></div>
+    <div class="r3"><span class="muted">${costTxt} → ${v.real ? '' : '~'}${money(num(it.estSell), it.sellCur)}</span>
+      <span class="${v.profit >= 0 ? 'pos' : 'neg'}"><b>${signed(v.profit)}</b></span>${!v.real && left !== it.qty && it.status !== 'watch' ? `<span class="muted">${left} ${t('left')}</span>` : ''}</div>
+  </div>`;
+}
+function viewItems(){
+  const u = D.ui;
+  const seg = ['all','local','trip'].map(s => `<button data-a="scope" data-id="${s}" class="${u.scope === s ? 'on' : ''}">${t('scope.' + s)}</button>`).join('');
+  const chips = ['active','watch','stock','done','all'].map(f => `<button class="chip ${u.filter === f ? 'on' : ''}" data-a="filter" data-id="${f}">${t('f.' + f)}</button>`).join('');
+  const th = D.th;
+  return `<div class="seg">${seg}</div>
+    <div class="chips">${chips}</div>
+    <div class="tools">
+      <input id="q" type="search" placeholder="${esc(t('search'))}" value="${esc(u.q)}">
+      <select id="sort">${['roi','profit','new','name'].map(s => `<option value="${s}" ${u.sort === s ? 'selected' : ''}>${esc(t('sort.' + s))}</option>`).join('')}</select>
+    </div>
+    <div class="tools"><select id="catF"><option value="">${esc(t('allCats'))}</option>${D.cats.map(c => `<option value="${c.id}" ${u.cat === c.id ? 'selected' : ''}>${esc(catName(c.id))}</option>`).join('')}</select></div>
+    ${D.items.length ? `<div class="legend">${esc(t('legend'))}: <span><i style="background:var(--red)"></i>&lt;${th[0]}%</span><span><i style="background:var(--orange)"></i>${th[0]}–${th[1]}%</span><span><i style="background:var(--yellow)"></i>${th[1]}–${th[2]}%</span><span><i style="background:var(--green)"></i>${th[2]}%+</span></div>` : ''}
+    <div id="itemList">${itemListHtml()}</div>`;
+}
+function itemListHtml(){
+  if(!D.items.length) return `<div class="empty"><p>${esc(t('empty.items'))}</p><button class="btn pri" data-a="newItem">+ ${esc(t('addItem'))}</button></div>`;
+  const list = filtered();
+  if(!list.length) return `<div class="empty"><p>${esc(t('empty.filter'))}</p></div>`;
+  return list.map(([it, v]) => itemCard(it, v)).join('');
+}
+
+/* ---------- item form ---------- */
+function curSelect(id, val){
+  return `<select id="${id}">${CURS.map(c => `<option ${c === val ? 'selected' : ''}>${c}</option>`).join('')}</select>`;
+}
+function itemForm(it, preset){
+  const isNew = !it;
+  it = it || Object.assign({name:'', cat:'other', status:'watch', qty:1, buyPrice:'', estSell:'', costs:'', link:'', note:'', tripId:'', buyCur:'NOK', sellCur:'NOK'}, preset || {});
+  const trip = it.tripId ? byId(D.trips, it.tripId) : null;
+  if(isNew && trip){ it.buyCur = trip.buyCur; it.sellCur = trip.sellCur; }
+  const statuses = ['watch','bought'].concat(it.tripId ? ['transit'] : [], ['listed']);
+  openSheet(`<h3><span>${esc(t(isNew ? 'addItem' : 'editItem'))}</span><button class="x" data-a="closeSheet">✕</button></h3>
+    <label>${t('name')}</label><input id="fName" value="${esc(it.name)}" autocomplete="off">
+    <div class="grid2">
+      <div><label>${t('category')}</label><select id="fCat">${D.cats.map(c => `<option value="${c.id}" ${c.id === it.cat ? 'selected' : ''}>${esc(catName(c.id))}</option>`).join('')}</select></div>
+      <div><label>${t('status')}</label><select id="fStatus" ${isDone(it) ? 'disabled' : ''}>${(isDone(it) ? [it.status] : statuses).map(s => `<option value="${s}" ${s === it.status ? 'selected' : ''}>${esc(t('st.' + s))}</option>`).join('')}</select></div>
+    </div>
+    <label>${t('trip')}</label><select id="fTrip"><option value="">${esc(t('noTrip'))}</option>${D.trips.map(tr => `<option value="${tr.id}" ${tr.id === it.tripId ? 'selected' : ''}>${esc(tr.name)}</option>`).join('')}</select>
+    <div id="curRow" class="grid2" style="${it.tripId || it.buyCur !== 'NOK' || it.sellCur !== 'NOK' ? '' : 'display:none'}">
+      <div><label>${t('buyCur')}</label>${curSelect('fBuyCur', it.buyCur)}</div>
+      <div><label>${t('sellCur')}</label>${curSelect('fSellCur', it.sellCur)}</div>
+    </div>
+    <div class="grid2">
+      <div><label>${t('buyPrice')}</label><input id="fBuy" inputmode="decimal" value="${esc(it.buyPrice)}" placeholder="0"></div>
+      <div><label>${t('estSell')}</label><input id="fEst" inputmode="decimal" value="${esc(it.estSell)}"></div>
+    </div>
+    <p class="hint">${esc(t('buyHint'))}</p>
+    <p class="hint" id="fCalc"></p>
+    <div class="grid2">
+      <div><label>${t('qty')}</label><input id="fQty" inputmode="numeric" value="${esc(it.qty)}"></div>
+      <div><label>${t('costs')}</label><input id="fCosts" inputmode="decimal" value="${esc(it.costs)}" placeholder="0"></div>
+    </div>
+    <p class="hint">${esc(t('costsHint'))}</p>
+    <label>${t('link')}</label><input id="fLink" type="url" value="${esc(it.link)}" placeholder="https://www.finn.no/…">
+    <label>${t('note')}</label><textarea id="fNote">${esc(it.note)}</textarea>
+    <div class="sp"></div>
+    <div class="row"><button class="btn" data-a="closeSheet">${t('cancel')}</button><button class="btn pri" id="fSave">${t('save')}</button></div>`);
+
+  const $ = id => document.getElementById(id);
+  const calc = () => {
+    const bc = $('fBuyCur').value, sc = $('fSellCur').value;
+    const b = num($('fBuy').value) * rate(bc), e = num($('fEst').value) * rate(sc);
+    const base = b + num($('fCosts').value) / Math.max(1, num($('fQty').value) || 1);
+    const p = e - base;
+    $('fCalc').innerHTML = $('fEst').value.trim() ? `${t('estProfit')}: <b class="${p >= 0 ? 'pos' : 'neg'}">${signed(p)}</b> ${t('each')} · <b>${pct(roi(p, base))}</b>${bc !== 'NOK' || sc !== 'NOK' ? ` <span class="muted">(${kr(b)} → ${kr(e)})</span>` : ''}` : '';
+  };
+  ['fBuy','fEst','fCosts','fQty','fBuyCur','fSellCur'].forEach(id => $(id).addEventListener('input', calc));
+  $('fTrip').addEventListener('change', () => {
+    const tr = byId(D.trips, $('fTrip').value);
+    $('curRow').style.display = tr ? '' : 'none';
+    if(tr){ $('fBuyCur').value = tr.buyCur; $('fSellCur').value = tr.sellCur; }
+    else { $('fBuyCur').value = 'NOK'; $('fSellCur').value = 'NOK'; }
+    calc();
+  });
+  calc();
+  if(isNew && !it.name) setTimeout(() => $('fName').focus(), 50);
+
+  $('fSave').onclick = () => {
+    const name = $('fName').value.trim();
+    if(!name){ toast(t('required')); $('fName').focus(); return; }
+    const target = isNew ? {id:uid(), created:today(), sales:[], status:'watch'} : it;
+    const oldCur = target.buyCur;
+    Object.assign(target, {
+      name, cat:$('fCat').value, tripId:$('fTrip').value || '',
+      buyCur:$('fBuyCur').value, sellCur:$('fSellCur').value,
+      buyPrice:num($('fBuy').value), estSell:num($('fEst').value), costs:num($('fCosts').value),
+      qty:Math.max(1, Math.round(num($('fQty').value)) || 1, soldQty(target)),
+      link:$('fLink').value.trim(), note:$('fNote').value.trim()
+    });
+    if(!isDone(target)) setStatus(target, $('fStatus').value);
+    // The purchase rate is frozen once bought; a changed purchase currency takes today's rate.
+    if(target.status !== 'watch' && (!target.buyRate || oldCur !== target.buyCur)) target.buyRate = rate(target.buyCur);
+    refreshStatus(target);
+    if(isNew) D.items.push(target);
+    save(); closeSheet(); render(); toast(t('saved'));
+  };
+}
+function setStatus(it, st){
+  if(st !== 'watch' && it.status === 'watch'){ it.buyRate = rate(it.buyCur); it.bought = it.bought || today(); }
+  if(st === 'watch'){ it.buyRate = 0; it.bought = ''; }
+  it.status = st;
+}
+
+/* ---------- item details ---------- */
+function openItem(id){
+  const it = byId(D.items, id); if(!it) return;
+  const v = itemView(it), trip = tripOf(it), done = isDone(it);
+  const acts = [];
+  if(it.status === 'watch') acts.push(['st', 'bought', 'act.bought']);
+  if(it.status === 'bought' && it.tripId) acts.push(['st', 'transit', 'act.transit']);
+  if(it.status === 'bought' || it.status === 'transit') acts.push(['st', 'listed', 'act.listed']);
+  if(!done && it.status !== 'watch') acts.push(['sell', '', 'act.sell']);
+  if(it.status === 'watch') acts.push(['sell', '', 'act.sell']);
+  const sales = it.sales.slice().sort((a, b) => b.d.localeCompare(a.d)).map(s => {
+    const p = saleProfit(it, s);
+    return `<div class="list-row"><div class="l">${s.w ? t('h.writeoff') : money(s.price, s.cur)} · ${s.qty}×<small>${s.d}${s.fee ? ' · −' + kr(s.fee) : ''}</small></div>
+      <b class="${p >= 0 ? 'pos' : 'neg'}">${signed(p)}</b><button class="x" data-a="delSale" data-id="${it.id}|${s.id}">✕</button></div>`;
+  }).join('');
+  openSheet(`<h3><span>${esc(it.name)}</span><button class="x" data-a="closeSheet">✕</button></h3>
+    <div class="r2 muted"><span class="pill">${esc(t('st.' + it.status))}</span> ${esc(catName(it.cat))}${trip ? ' · ' + esc(trip.name) : ''}</div>
+    <div class="facts">
+      <div><small>${t('cost')} (${t('each')})</small>${num(it.buyPrice) === 0 ? t('free') : money(num(it.buyPrice), it.buyCur)}${it.buyCur !== 'NOK' ? `<small>= ${kr(unitCost(it))}</small>` : ''}</div>
+      <div><small>${t('est')} (${t('each')})</small>${money(num(it.estSell), it.sellCur)}${it.sellCur !== 'NOK' ? `<small>= ${kr(unitEst(it))}</small>` : ''}</div>
+      <div><small>${t(v.real ? 'realProfit' : 'estProfit')}</small><b class="${v.profit >= 0 ? 'pos' : 'neg'}">${signed(v.profit)}</b></div>
+      <div><small>%</small><span class="badge b-${colorOf(v.roi)}">${pct(v.roi)}</span></div>
+      ${it.qty > 1 || it.sales.length ? `<div><small>${t('qty')}</small>${t('soldOf', {a:soldQty(it), b:it.qty})}</div>` : ''}
+      ${num(it.costs) ? `<div><small>${t('costs')}</small>${kr(num(it.costs))}</div>` : ''}
+    </div>
+    ${it.note ? `<p style="white-space:pre-wrap">${esc(it.note)}</p>` : ''}
+    ${it.link ? `<p><a href="${esc(safeUrl(it.link))}" target="_blank" rel="noopener">${esc(t('act.open'))} ↗</a></p>` : ''}
+    <div class="row">${acts.map(a => `<button class="btn ${a[0] === 'sell' ? 'pri' : ''}" data-a="${a[0] === 'st' ? 'setSt' : 'sell'}" data-id="${it.id}|${a[1]}">${esc(t(a[2]))}</button>`).join('')}</div>
+    ${sales ? `<h2>${t('sales')}</h2><div class="card">${sales}</div>` : ''}
+    <div class="sp"></div>
+    <div class="row">
+      <button class="btn" data-a="editItem" data-id="${it.id}">${t('edit')}</button>
+      ${!done && it.status !== 'watch' ? `<button class="btn" data-a="writeoff" data-id="${it.id}">${t('act.writeoff')}</button>` : ''}
+      <button class="btn danger" data-a="delItem" data-id="${it.id}">${t('delete')}</button>
+    </div>
+    <p class="hint">${t('added')}: ${esc(it.created || '')}${it.bought ? ' · ' + t('st.bought') + ': ' + esc(it.bought) : ''}</p>`);
+}
+function safeUrl(u){ return /^https?:\/\//i.test(u) ? u : 'https://' + u; }
+
+function sellForm(id, writeoff){
+  const it = byId(D.items, id); if(!it) return;
+  const left = Math.max(1, leftQty(it));
+  openSheet(`<h3><span>${t(writeoff ? 'woTitle' : 'sellTitle')}: ${esc(it.name)}</span><button class="x" data-a="closeSheet">✕</button></h3>
+    ${writeoff ? `<p class="hint">${esc(t('woText'))}</p>` : ''}
+    <div class="grid2">
+      <div><label>${t(writeoff ? 'woQty' : 'sellQty')}</label><input id="sQty" inputmode="numeric" value="${left}"></div>
+      <div><label>${t('date')}</label><input id="sDate" type="date" value="${today()}"></div>
+    </div>
+    ${writeoff ? '' : `<div class="grid2">
+      <div><label>${t('sellPrice')}</label><input id="sPrice" inputmode="decimal" value="${num(it.estSell) * left || ''}"></div>
+      <div><label>${t('currency')}</label>${curSelect('sCur', it.sellCur)}</div>
+    </div>
+    <label>${t('sellFee')}</label><input id="sFee" inputmode="decimal" placeholder="0">
+    <p class="hint">${esc(t('costsHint'))}</p>`}
+    <p class="hint" id="sCalc"></p>
+    <div class="sp"></div>
+    <div class="row"><button class="btn" data-a="closeSheet">${t('cancel')}</button><button class="btn pri" id="sSave">${t('save')}</button></div>`);
+  const $ = i => document.getElementById(i);
+  const read = () => {
+    const qty = Math.min(left, Math.max(1, Math.round(num($('sQty').value)) || 1));
+    const price = writeoff ? 0 : num($('sPrice').value), cur = writeoff ? 'NOK' : $('sCur').value;
+    const s = {id:uid(), d:$('sDate').value || today(), qty, price, cur, rate:rate(cur), nok:price * rate(cur), fee:writeoff ? 0 : num($('sFee').value), w:!!writeoff};
+    return s;
+  };
+  const calc = () => {
+    const s = read(), p = saleProfit(it, s);
+    $('sCalc').innerHTML = `${t('profit')}: <b class="${p >= 0 ? 'pos' : 'neg'}">${signed(p)}</b> · <b>${pct(roi(p, saleBase(it, s)))}</b>`;
+  };
+  ['sQty','sPrice','sCur','sFee'].forEach(i => $(i) && $(i).addEventListener('input', calc));
+  calc();
+  $('sSave').onclick = () => {
+    if(it.status === 'watch') setStatus(it, 'bought');
+    it.sales.push(read());
+    refreshStatus(it);
+    save(); closeSheet(); render(); toast(t('saved'));
+  };
+}
+
+/* ---------- trips ---------- */
+function tripStats(tr){
+  let profit = 0, est = 0;
+  for(const it of D.items) if(it.tripId === tr.id){
+    for(const s of it.sales) profit += saleProfit(it, s);
+    if(!isDone(it)) est += (unitEst(it) - unitBase(it)) * leftQty(it);
+  }
+  return {profit, est, cov: tr.cost > 0 ? profit / tr.cost * 100 : null};
+}
+function viewTrips(){
+  if(!D.trips.length) return `<div class="empty"><p>${esc(t('empty.trips'))}</p><button class="btn pri" data-a="newTrip">+ ${esc(t('tripNew'))}</button></div>`;
+  const trips = D.trips.slice().sort((a, b) => (b.d1 || '').localeCompare(a.d1 || ''));
+  return trips.map(tr => {
+    const s = tripStats(tr), n = D.items.filter(i => i.tripId === tr.id).length;
+    return `<div class="card" data-a="openTrip" data-id="${tr.id}" style="cursor:pointer">
+      <div class="r1" style="display:flex;gap:8px"><b style="flex:1">${esc(tr.name)}</b>${s.cov !== null ? `<span class="badge b-${s.cov >= 100 ? 'green' : s.cov >= 50 ? 'yellow' : 'orange'}">${fmtNum(Math.round(s.cov), 0)}%</span>` : ''}</div>
+      <div class="muted" style="font-size:13px">${esc(tr.from || '')} → ${esc(tr.to || '')} · ${tr.buyCur}→${tr.sellCur}${tr.d1 ? ' · ' + esc(tr.d1) : ''} · ${n} ×</div>
+      <div style="margin-top:6px">${t('tripProfit')}: <b class="${s.profit >= 0 ? 'pos' : 'neg'}">${signed(s.profit)}</b>${tr.cost ? ` <span class="muted">/ ${kr(tr.cost)}</span>` : ''}${s.est ? ` · <span class="muted">${t('tripEst')} ${signed(s.est)}</span>` : ''}</div>
+      ${s.cov !== null ? `<div class="bar"><i style="width:${Math.max(0, Math.min(100, s.cov))}%"></i></div><small class="muted">${fmtNum(Math.round(s.cov), 0)}% ${t('covered')}</small>` : ''}
+    </div>`;
+  }).join('') + `<div class="row"><button class="btn" data-a="newTrip">+ ${esc(t('tripNew'))}</button></div>`;
+}
+function tripForm(tr){
+  const isNew = !tr;
+  tr = tr || {name:'', from:'KupujemProdajem', to:'Finn.no', buyCur:'RSD', sellCur:'NOK', cost:'', d1:today(), d2:''};
+  openSheet(`<h3><span>${t(isNew ? 'tripNew' : 'tripEdit')}</span><button class="x" data-a="closeSheet">✕</button></h3>
+    <label>${t('tripName')}</label><input id="tName" value="${esc(tr.name)}" placeholder="${esc(t('tripNamePh'))}">
+    <div class="grid2">
+      <div><label>${t('market.buy')}</label><input id="tFrom" value="${esc(tr.from)}"></div>
+      <div><label>${t('market.sell')}</label><input id="tTo" value="${esc(tr.to)}"></div>
+      <div><label>${t('buyCur')}</label>${curSelect('tBuyCur', tr.buyCur)}</div>
+      <div><label>${t('sellCur')}</label>${curSelect('tSellCur', tr.sellCur)}</div>
+      <div><label>${t('from')}</label><input id="tD1" type="date" value="${esc(tr.d1)}"></div>
+      <div><label>${t('to')}</label><input id="tD2" type="date" value="${esc(tr.d2)}"></div>
+    </div>
+    <label>${t('tripCost')}</label><input id="tCost" inputmode="decimal" value="${esc(tr.cost)}" placeholder="0">
+    <p class="hint">${esc(t('tripCostHint'))}</p>
+    <div class="sp"></div>
+    <div class="row"><button class="btn" data-a="closeSheet">${t('cancel')}</button><button class="btn pri" id="tSave">${t('save')}</button></div>
+    ${isNew ? '' : `<div class="sp"></div><div class="row"><button class="btn danger" data-a="delTrip" data-id="${tr.id}">${t('delete')}</button></div>`}`);
+  const $ = i => document.getElementById(i);
+  $('tSave').onclick = () => {
+    const name = $('tName').value.trim();
+    if(!name){ toast(t('required')); return; }
+    const target = isNew ? {id:uid()} : tr;
+    Object.assign(target, {name, from:$('tFrom').value.trim(), to:$('tTo').value.trim(), buyCur:$('tBuyCur').value, sellCur:$('tSellCur').value,
+      d1:$('tD1').value, d2:$('tD2').value, cost:num($('tCost').value)});
+    if(isNew) D.trips.push(target);
+    save(); closeSheet(); render(); toast(t('saved'));
+  };
+}
+function openTrip(id){
+  const tr = byId(D.trips, id); if(!tr) return;
+  const s = tripStats(tr);
+  const items = D.items.filter(i => i.tripId === id).map(it => [it, itemView(it)]).sort((a, b) => (b[1].roi > a[1].roi) - (b[1].roi < a[1].roi));
+  openSheet(`<h3><span>${esc(tr.name)}</span><button class="x" data-a="closeSheet">✕</button></h3>
+    <div class="muted">${esc(tr.from)} → ${esc(tr.to)} · ${tr.buyCur}→${tr.sellCur} · 1 ${tr.buyCur} = ${fmtNum(rate(tr.buyCur), 4)} kr</div>
+    <div class="facts">
+      <div><small>${t('tripProfit')}</small><b class="${s.profit >= 0 ? 'pos' : 'neg'}">${signed(s.profit)}</b></div>
+      <div><small>${t('tripCost')}</small>${kr(tr.cost || 0)}</div>
+      <div><small>${t('tripEst')}</small>${signed(s.est)}</div>
+      <div><small>${t('covered')}</small>${s.cov !== null ? fmtNum(Math.round(s.cov), 0) + '%' : '—'}</div>
+    </div>
+    <div class="row"><button class="btn pri" data-a="newItemTrip" data-id="${tr.id}">+ ${t('addToTrip')}</button><button class="btn" data-a="editTrip" data-id="${tr.id}">${t('edit')}</button></div>
+    <h2>${t('tripItems')}</h2>
+    ${items.map(([it, v]) => itemCard(it, v)).join('') || `<p class="muted">—</p>`}`);
+}
+
+/* ---------- cash ---------- */
+function viewCash(T){
+  const hist = [];
+  for(const it of D.items) for(const s of it.sales)
+    hist.push({d:s.d, label:t(s.w ? 'h.writeoff' : 'h.sale') + ': ' + it.name, amt:saleProfit(it, s), id:it.id});
+  for(const e of D.ledger)
+    hist.push({d:e.d, label:t('h.' + e.t) + (e.t === 'withdraw' ? ': ' + purposeName(e.p) : '') + (e.note ? ' · ' + e.note : ''),
+      amt:(e.t === 'withdraw' || e.t === 'reinvest' || e.t === 'capOut') ? -e.amt : e.amt, cap:e.t === 'capIn' || e.t === 'capOut', led:e.id});
+  hist.sort((a, b) => b.d.localeCompare(a.d));
+  return `<div class="card"><div class="kpi-l">${t('cash.box')}</div><div class="big ${T.box >= 0 ? 'pos' : 'neg'}">${kr(T.box)}</div>
+      <p class="hint">${esc(t('cash.boxHint'))}</p><div class="sp"></div>
+      <button class="btn pri" data-a="withdraw" style="width:100%" ${T.box > 0.5 ? '' : 'disabled'}>${t('cash.empty')}</button></div>
+    <div class="kpis">
+      <div class="card"><div class="kpi-l">${t('cash.capital')}: ${t('cash.free')}</div><div class="kpi-v ${T.free < -0.5 ? 'neg' : ''}">${kr(T.free)}</div></div>
+      <div class="card"><div class="kpi-l">${t('cash.goods')}</div><div class="kpi-v">${kr(T.goods)}</div></div>
+    </div>
+    ${T.free < -0.5 ? `<p class="hint">${esc(t('cash.ownPocket'))}</p>` : ''}
+    <div class="row"><button class="btn small" data-a="capIn">+ ${t('cash.capIn')}</button><button class="btn small" data-a="capOut">− ${t('cash.capOut')}</button></div>
+    <div class="sp"></div>
+    <div class="card"><div class="kpi-l">${t('cash.total')}</div><div class="kpi-v ${T.profit >= 0 ? 'pos' : 'neg'}">${kr(T.profit)}</div><p class="hint">${esc(t('cash.totalHint'))}</p></div>
+    <details class="card"><summary><b>${t('cash.how')}</b></summary><div class="hint" style="font-size:14px;color:var(--text)">${t('cash.howText')}</div></details>
+    <h2>${t('cash.history')}</h2>
+    <div class="card">${hist.slice(0, 80).map(h => `<div class="list-row"><div class="l">${esc(h.label)}<small>${esc(h.d)}</small></div>
+      <b class="${h.cap ? '' : h.amt >= 0 ? 'pos' : 'neg'}">${h.cap ? kr(h.amt) : signed(h.amt)}</b>${h.led ? `<button class="x" data-a="delLedger" data-id="${h.led}">✕</button>` : ''}</div>`).join('') || `<p class="muted">${t('empty.history')}</p>`}</div>`;
+}
+function moneyForm(kind){
+  const T = totals();
+  const max = kind === 'withdraw' ? T.box : kind === 'capOut' ? Math.max(0, T.free) : Infinity;
+  const title = {withdraw:'cash.empty', capIn:'cash.capIn', capOut:'cash.capOut'}[kind];
+  openSheet(`<h3><span>${t(title)}</span><button class="x" data-a="closeSheet">✕</button></h3>
+    <label>${t('amount')}</label><input id="mAmt" inputmode="decimal" value="${isFinite(max) && max > 0 ? Math.floor(max) : ''}">
+    ${kind === 'withdraw' ? `<label>${t('purpose')}</label><select id="mPurpose">${D.purposes.map(p => `<option value="${p.id}">${esc(purposeName(p.id))}</option>`).join('')}</select>` : ''}
+    <div class="grid2"><div><label>${t('date')}</label><input id="mDate" type="date" value="${today()}"></div><div><label>${t('note')}</label><input id="mNote"></div></div>
+    <div class="sp"></div>
+    <div class="row"><button class="btn" data-a="closeSheet">${t('cancel')}</button><button class="btn pri" id="mSave">${t('save')}</button></div>`);
+  document.getElementById('mSave').onclick = () => {
+    const amt = num(document.getElementById('mAmt').value);
+    if(amt <= 0) return;
+    if(kind === 'withdraw' && amt > max + 0.5){ toast(t('tooMuch')); return; }
+    if(kind === 'capOut' && amt > max + 0.5){ toast(t('capTooMuch')); return; }
+    const e = {id:uid(), d:document.getElementById('mDate').value || today(), t:kind, amt, note:document.getElementById('mNote').value.trim()};
+    if(kind === 'withdraw'){
+      e.p = document.getElementById('mPurpose').value;
+      if(e.p === 'reinvest') e.t = 'reinvest';
+    }
+    D.ledger.push(e);
+    save(); closeSheet(); render(); toast(t('saved'));
+  };
+}
+
+/* ---------- stats ---------- */
+function viewStats(T){
+  const sales = [];
+  for(const it of D.items) for(const s of it.sales) sales.push({it, s, p:saleProfit(it, s), b:saleBase(it, s)});
+  if(!sales.length) return `<div class="empty"><p>${esc(t('stats.none'))}</p></div>`;
+  const P = sales.reduce((a, x) => a + x.p, 0), B = sales.reduce((a, x) => a + x.b, 0);
+  const days = sales.filter(x => !x.s.w && x.it.bought).map(x => Math.max(0, (new Date(x.s.d) - new Date(x.it.bought)) / 864e5));
+  const avgDays = days.length ? days.reduce((a, b) => a + b, 0) / days.length : null;
+  const byCat = {};
+  for(const x of sales){ const c = byCat[x.it.cat] || (byCat[x.it.cat] = {p:0, n:0}); c.p += x.p; if(!x.s.w) c.n += x.s.qty; }
+  const catRows = Object.entries(byCat).sort((a, b) => b[1].p - a[1].p);
+  const maxCat = Math.max(1, ...catRows.map(r => Math.abs(r[1].p)));
+  const months = {};
+  for(const x of sales){ const m = x.s.d.slice(0, 7); months[m] = (months[m] || 0) + x.p; }
+  const mRows = Object.entries(months).sort((a, b) => b[0].localeCompare(a[0])).slice(0, 12);
+  const maxM = Math.max(1, ...mRows.map(r => Math.abs(r[1])));
+  const byP = {};
+  for(const e of D.ledger) if(e.t === 'withdraw' || e.t === 'reinvest'){ const k = e.t === 'reinvest' ? 'reinvest' : e.p; byP[k] = (byP[k] || 0) + e.amt; }
+  const best = sales.filter(x => !x.s.w).sort((a, b) => b.p - a.p).slice(0, 5);
+  const bar = (v, max) => `<div class="bar"><i class="${v < 0 ? 'neg' : ''}" style="width:${Math.abs(v) / max * 100}%"></i></div>`;
+  return `<div class="kpis">
+      <div class="card"><div class="kpi-l">${t('cash.total')}</div><div class="kpi-v ${P >= 0 ? 'pos' : 'neg'}">${kr(P)}</div></div>
+      <div class="card"><div class="kpi-l">${t('stats.avgRoi')}</div><div class="kpi-v">${pct(roi(P, B))}</div></div>
+      <div class="card"><div class="kpi-l">${t('stats.sold')}</div><div class="kpi-v">${T.sold}</div></div>
+      <div class="card"><div class="kpi-l">${t('stats.days')}</div><div class="kpi-v">${avgDays === null ? '—' : fmtNum(Math.round(avgDays), 0)}</div></div>
+    </div>
+    <h2>${t('stats.byMonth')}</h2><div class="card">${mRows.map(([m, v]) => `<div class="list-row"><div class="l">${m}${bar(v, maxM)}</div><b class="${v >= 0 ? 'pos' : 'neg'}">${signed(v)}</b></div>`).join('')}</div>
+    <h2>${t('stats.byCat')}</h2><div class="card">${catRows.map(([c, v]) => `<div class="list-row"><div class="l">${esc(catName(c))} <span class="muted">· ${v.n}×</span>${bar(v.p, maxCat)}</div><b class="${v.p >= 0 ? 'pos' : 'neg'}">${signed(v.p)}</b></div>`).join('')}</div>
+    ${Object.keys(byP).length ? `<h2>${t('stats.byPurpose')}</h2><div class="card">${Object.entries(byP).sort((a, b) => b[1] - a[1]).map(([p, v]) => `<div class="list-row"><div class="l">${esc(purposeName(p))}</div><b>${kr(v)}</b></div>`).join('')}</div>` : ''}
+    ${D.trips.length ? `<h2>${t('stats.trips')}</h2><div class="card">${D.trips.map(tr => { const s = tripStats(tr); return `<div class="list-row"><div class="l">${esc(tr.name)}<small>${s.cov !== null ? fmtNum(Math.round(s.cov), 0) + '% ' + t('covered') : ''}</small></div><b class="${s.profit >= 0 ? 'pos' : 'neg'}">${signed(s.profit)}</b></div>`; }).join('')}</div>` : ''}
+    <h2>${t('stats.best')}</h2><div class="card">${best.map(x => `<div class="list-row" data-a="openItem" data-id="${x.it.id}"><div class="l">${esc(x.it.name)}<small>${x.s.d} · ${pct(roi(x.p, x.b))}</small></div><b class="pos">${signed(x.p)}</b></div>`).join('')}</div>`;
+}
+
+/* ---------- settings ---------- */
+function viewMore(){
+  const approx = !D.ratesAt;
+  const rateRows = CURS.filter(c => c !== 'NOK').map(c => `<div class="list-row"><div class="l">1 ${c}<small>${fmtNum(D.rates[c] || 0, 4)} kr</small></div>
+    <input data-rate="${c}" inputmode="decimal" style="width:110px" placeholder="${fmtNum(D.rates[c] || 0, 4)}" value="${esc(D.manual[c] || '')}"></div>`).join('');
+  const listEditor = (arr, kind, nameFn) => arr.map(x => `<div class="list-row"><div class="l">${esc(nameFn(x.id))}</div>
+    <button class="btn small" data-a="rename" data-id="${kind}|${x.id}">${t('rename')}</button>${kind === 'purposes' && x.id === 'reinvest' ? '' : `<button class="x" data-a="delEntry" data-id="${kind}|${x.id}">✕</button>`}</div>`).join('');
+  const android = window.MarginGoAndroid;
+  let ver = '';
+  try { ver = android ? android.getVersion() : 'web'; } catch(e){}
+  const canUpdate = android && (() => { try { return android.canSelfUpdate(); } catch(e){ return true; } })();
+  return `<h2>${t('set.lang')}</h2>
+    <div class="seg">${['sr','en','nb'].map(l => `<button data-a="lang" data-id="${l}" class="${D.lang === l ? 'on' : ''}">${I18N[l]['app.lang']}</button>`).join('')}</div>
+    <h2>${t('set.colors')}</h2>
+    <div class="card"><div class="grid2" style="grid-template-columns:1fr 1fr 1fr">
+      <div><label>${t('set.orange')}</label><input data-th="0" inputmode="numeric" value="${D.th[0]}"></div>
+      <div><label>${t('set.yellow')}</label><input data-th="1" inputmode="numeric" value="${D.th[1]}"></div>
+      <div><label>${t('set.green')}</label><input data-th="2" inputmode="numeric" value="${D.th[2]}"></div>
+    </div><p class="hint">${esc(t('set.colorsHint'))}</p></div>
+    <h2>${t('set.cats')}</h2>
+    <div class="card">${listEditor(D.cats, 'cats', catName)}
+      <div class="tools" style="margin:10px 0 0"><input id="newCat" placeholder="${esc(t('set.newCat'))}"><button class="btn small" data-a="addEntry" data-id="cats">+</button></div></div>
+    <h2>${t('set.purposes')}</h2>
+    <div class="card">${listEditor(D.purposes, 'purposes', purposeName)}
+      <div class="tools" style="margin:10px 0 0"><input id="newPurposes" placeholder="${esc(t('set.newPurpose'))}"><button class="btn small" data-a="addEntry" data-id="purposes">+</button></div></div>
+    <h2>${t('set.rates')}</h2>
+    <div class="card"><p class="hint" style="margin-top:0">${esc(t('set.ratesHint'))}</p>
+      <p class="hint">${t('set.ratesAt')}: ${approx ? esc(t('set.approx')) : new Date(D.ratesAt).toLocaleString(LOCALE[D.lang])}</p>
+      ${rateRows}<div class="sp"></div><button class="btn small" data-a="refreshRates">${t('set.refresh')}</button></div>
+    <h2>${t('set.backup')}</h2>
+    <div class="card"><p class="hint" style="margin-top:0">${esc(t('set.backupHint'))}</p><div class="sp"></div>
+      <div class="row"><button class="btn" data-a="export">${t('set.export')}</button><button class="btn" data-a="import">${t('set.import')}</button></div>
+      <div class="sp"></div><button class="btn small" data-a="csv">${t('set.csv')}</button></div>
+    ${canUpdate ? `<div class="sp"></div><button class="btn" data-a="checkUpdate" style="width:100%">${t('set.updates')}</button>` : ''}
+    <p class="hint" style="text-align:center;margin:18px 0">${esc(t('set.about'))}<br>${t('set.version')}: ${esc(ver)}</p>`;
+}
+
+/* ================= sheet, toast ================= */
+function openSheet(html){
+  const s = document.getElementById('sheet');
+  s.innerHTML = html; s.scrollTop = 0;
+  s.classList.add('open'); document.getElementById('veil').classList.add('open');
+}
+function closeSheet(){
+  document.getElementById('sheet').classList.remove('open');
+  document.getElementById('veil').classList.remove('open');
+}
+function sheetOpen(){ return document.getElementById('sheet').classList.contains('open'); }
+let toastTimer;
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.style.display = 'block';
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.style.display = 'none', 2600);
+}
+
+/* ================= actions ================= */
+const ACT = {
+  tab: id => { D.ui.tab = id; save(); closeSheet(); render(); window.scrollTo(0, 0); },
+  scope: id => { D.ui.scope = id; save(); render(); },
+  filter: id => { D.ui.filter = id; save(); render(); },
+  newItem: () => D.ui.tab === 'trips' ? tripForm() : itemForm(null, D.ui.scope === 'trip' && D.trips.length ? {tripId:latestTrip().id} : null),
+  newItemTrip: id => itemForm(null, {tripId:id}),
+  openItem: id => openItem(id),
+  editItem: id => itemForm(byId(D.items, id)),
+  setSt: arg => { const [id, st] = arg.split('|'); const it = byId(D.items, id); setStatus(it, st); save(); render(); openItem(id); },
+  sell: arg => sellForm(arg.split('|')[0], false),
+  writeoff: id => sellForm(id, true),
+  delSale: arg => {
+    const [id, sid] = arg.split('|'), it = byId(D.items, id);
+    if(!confirm(t('confirmSale'))) return;
+    it.sales = it.sales.filter(s => s.id !== sid); refreshStatus(it); save(); render(); openItem(id);
+  },
+  delItem: id => {
+    const it = byId(D.items, id);
+    if(!confirm(t('confirmDelete', {n:it.name}))) return;
+    D.items = D.items.filter(x => x.id !== id); save(); closeSheet(); render();
+  },
+  newTrip: () => tripForm(),
+  openTrip: id => openTrip(id),
+  editTrip: id => tripForm(byId(D.trips, id)),
+  delTrip: id => {
+    const tr = byId(D.trips, id);
+    if(!confirm(t('delete') + ': ' + tr.name + '?')) return;
+    D.trips = D.trips.filter(x => x.id !== id);
+    for(const it of D.items) if(it.tripId === id) it.tripId = '';
+    save(); closeSheet(); render();
+  },
+  withdraw: () => moneyForm('withdraw'),
+  capIn: () => moneyForm('capIn'),
+  capOut: () => moneyForm('capOut'),
+  delLedger: id => { if(!confirm(t('delete') + '?')) return; D.ledger = D.ledger.filter(e => e.id !== id); save(); render(); },
+  closeSheet: () => closeSheet(),
+  lang: id => { D.lang = id; save(); render(); },
+  rename: arg => {
+    const [kind, id] = arg.split('|'), x = byId(D[kind], id);
+    const cur = kind === 'cats' ? catName(id) : purposeName(id);
+    const n = prompt(t('newName'), cur);
+    if(n && n.trim()){ delete x.key; x.name = n.trim(); save(); render(); }
+  },
+  delEntry: arg => {
+    const [kind, id] = arg.split('|');
+    const used = kind === 'cats' ? D.items.some(i => i.cat === id) : D.ledger.some(e => e.p === id);
+    if(used && !confirm(t('set.inUse'))) return;
+    D[kind] = D[kind].filter(x => x.id !== id);
+    save(); render();
+  },
+  addEntry: kind => {
+    const el = document.getElementById(kind === 'cats' ? 'newCat' : 'newPurposes');
+    const n = el.value.trim(); if(!n) return;
+    D[kind].push({id:uid(), name:n}); save(); render();
+  },
+  refreshRates: () => fetchRates(true),
+  export: () => {
+    const data = Object.assign({}, D, {app:'MarginGo', exported:new Date().toISOString()});
+    saveFile(`margingo-backup-${today()}.json`, 'application/json', JSON.stringify(data, null, 1));
+  },
+  import: () => document.getElementById('importFile').click(),
+  csv: () => {
+    const rows = [['date','item','category','trip','qty','price','currency','price_kr','cost_kr','fees_kr','profit_kr','return_pct','write_off']];
+    for(const it of D.items) for(const s of it.sales){
+      const p = saleProfit(it, s), b = saleBase(it, s), tr = tripOf(it);
+      rows.push([s.d, it.name, catName(it.cat), tr ? tr.name : '', s.qty, s.price, s.cur, s.nok.toFixed(2), (s.qty * unitBase(it)).toFixed(2), (s.fee || 0).toFixed(2), p.toFixed(2), b > 0 ? (p / b * 100).toFixed(1) : '', s.w ? 'yes' : '']);
+    }
+    rows.sort((a, b) => a === rows[0] ? -1 : b === rows[0] ? 1 : a[0].localeCompare(b[0]));
+    const csv = rows.map(r => r.map(v => /[",;\n]/.test(String(v)) ? '"' + String(v).replace(/"/g, '""') + '"' : v).join(',')).join('\n');
+    saveFile(`margingo-sales-${today()}.csv`, 'text/csv', '﻿' + csv);
+  },
+  checkUpdate: () => { try { window.MarginGoAndroid.checkForUpdate(); } catch(e){} }
+};
+function latestTrip(){ return D.trips.slice().sort((a, b) => (b.d1 || '').localeCompare(a.d1 || ''))[0]; }
+
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-a]');
+  if(!el) return;
+  if(el.tagName === 'A') return;
+  const fn = ACT[el.dataset.a];
+  if(fn){ e.preventDefault(); fn(el.dataset.id); }
+});
+document.addEventListener('input', e => {
+  const el = e.target;
+  if(el.id === 'q'){ D.ui.q = el.value; save(); document.getElementById('itemList').innerHTML = itemListHtml(); }
+});
+document.addEventListener('change', e => {
+  const el = e.target;
+  if(el.id === 'sort'){ D.ui.sort = el.value; save(); render(); }
+  else if(el.id === 'catF'){ D.ui.cat = el.value; save(); render(); }
+  else if(el.dataset.th !== undefined){
+    const th = D.th.slice(); th[+el.dataset.th] = num(el.value);
+    if(th[0] <= th[1] && th[1] <= th[2]){ D.th = th; save(); }
+    render();
+  } else if(el.dataset.rate){
+    const v = num(el.value);
+    if(v > 0) D.manual[el.dataset.rate] = v; else delete D.manual[el.dataset.rate];
+    save(); render();
+  } else if(el.id === 'importFile' && el.files[0]){
+    const r = new FileReader();
+    r.onload = () => {
+      let d;
+      try { d = JSON.parse(r.result); } catch(_){}
+      if(!d || d.app !== 'MarginGo' || !Array.isArray(d.items)){ toast(t('set.importBad')); return; }
+      if(!confirm(t('set.importConfirm'))) return;
+      D = normalize(d); save(); render(); toast(t('set.importOk'));
+    };
+    r.readAsText(el.files[0]);
+    el.value = '';
+  }
+});
+
+function saveFile(name, mime, text){
+  if(window.MarginGoAndroid){ window.MarginGoAndroid.saveFile(name, mime, text); return; }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], {type:mime}));
+  a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+
+/* ================= exchange rates ================= */
+const RATE_INTERVAL = 12 * 3600 * 1000;
+async function fetchRates(manual){
+  if(!manual && Date.now() - D.ratesAt < RATE_INTERVAL) return;
+  const sources = [
+    async () => { const j = await (await fetch('https://open.er-api.com/v6/latest/NOK', {cache:'no-store'})).json(); return c => j.rates[c]; },
+    async () => { const j = await (await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/nok.json', {cache:'no-store'})).json(); return c => j.nok[c.toLowerCase()]; }
+  ];
+  for(const src of sources){
+    try {
+      const per = await src(), rates = {NOK:1};
+      for(const c of CURS) if(c !== 'NOK'){ const v = +per(c); if(v > 0) rates[c] = 1 / v; }
+      if(Object.keys(rates).length < 4) continue;
+      Object.assign(D.rates, rates); D.ratesAt = Date.now(); save();
+      if(manual) toast(t('set.ratesOk'));
+      render();
+      return;
+    } catch(e){}
+  }
+  if(manual) toast(t('set.ratesFail'));
+}
+
+/* ================= Android hooks ================= */
+// Text shared from another app (a Finn/KP listing): open a new item with the link filled in.
+window.mgShared = text => {
+  const m = String(text).match(/https?:\/\/\S+/);
+  const link = m ? m[0].replace(/[)\].,]+$/, '') : '';
+  let name = String(text).replace(link, '').split('\n').map(s => s.trim()).filter(Boolean)[0] || '';
+  name = name.replace(/\s*[-–|]\s*(FINN|finn\.no|KupujemProdajem).*$/i, '').slice(0, 120);
+  D.ui.tab = 'items'; render();
+  itemForm(null, {name, link});
+  toast(t('shared'));
+};
+// Back button: close an open sheet first.
+window.mgBack = () => { if(sheetOpen()){ closeSheet(); return true; } if(D.ui.tab !== 'items'){ ACT.tab('items'); return true; } return false; };
+document.addEventListener('keydown', e => { if(e.key === 'Escape' && sheetOpen()) closeSheet(); });
+
+render();
+fetchRates(false);
+try { window.MarginGoAndroid && window.MarginGoAndroid.ready(); } catch(e){}
+if('serviceWorker' in navigator && location.protocol === 'https:' && !window.MarginGoAndroid){
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
