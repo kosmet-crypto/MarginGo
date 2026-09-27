@@ -26,11 +26,7 @@ jobs:
         env:
           MG_KEYSTORE_B64: ${{ secrets.MG_KEYSTORE_B64 }}
         run: |
-          if [ -z "$MG_KEYSTORE_B64" ]; then
-            echo "::error::Secrets MG_KEYSTORE_B64 and MG_KEYSTORE_PASSWORD are missing. See README → Signing key."
-            exit 1
-          fi
-          echo "$MG_KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          cp android/app/margingo-release.jks "$RUNNER_TEMP/release.jks"
           echo "MG_KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
 
       # Fingerprint of the Android part (not the web page). The app only offers an APK update when
